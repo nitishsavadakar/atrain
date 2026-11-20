@@ -33,8 +33,6 @@ A headless-browser script played all 192 possible paths (4 × 4 × 4 × 3) and c
 | `app/process.html` | One-page overview: steps, requirements, scenes, tests, decisions |
 | `docs/NOTE.pdf` | Short note: main decision, AI output corrected, what is unfinished |
 | `docs/README.pdf` | How the app works (PDF) |
-| `docs/How_I_built_it.docx` | Step-by-step explanation |
-| `docs/requirements.md` | The requirements checklist used during the build |
 
 ## Shortcuts
 The numbers are my judgement and should be tuned by an expert. Fixed text, no live AI model. The German needs a native speaker review. Not yet tested with real managers.

@@ -37,10 +37,10 @@
 </style>
 </head>
 <body>
-<header><h1>Team Ownership Simulator: how I built it</h1><div>Nitish Savadakar · AI product case study · 90 minutes</div></header>
+<header><h1>Team Ownership Simulator: how I built it</h1><div>A one-page overview of the build</div></header>
 <main class="wrap">
   <div class="pipe">
-    <div class="step"><span class="n">1</span><div class="t">Understand</div><h3>Brief → checklist</h3><p>Turned the brief into 14 testable requirements: ≥2 connected scenes, 3–5 min, replay and restart, clear to use.</p></div>
+    <div class="step"><span class="n">1</span><div class="t">Understand</div><h3>Goal → checklist</h3><p>Turned the goal into 14 testable requirements: ≥2 connected scenes, 3–5 min, replay and restart, clear to use.</p></div>
     <div class="step"><span class="n">2</span><div class="t">Design</div><h3>Model before code</h3><p>Alex = two numbers, <b>ownership</b> and <b>trust</b>. Five kinds of help, each changes them differently.</p></div>
     <div class="step"><span class="n">3</span><div class="t">Write</div><h3>4 scenes as data</h3><p>Text and rules in one place. Later scenes read Alex's state, so earlier choices change them.</p></div>
     <div class="step"><span class="n">4</span><div class="t">Build</div><h3>One HTML file</h3><p>Small engine: show scene → apply choice → pop-up → next. Snapshot before every scene, saved in the browser.</p></div>
@@ -75,7 +75,7 @@
     <div class="box">
       <h2>Decisions and checks</h2>
       <ul>
-        <li><b>Main decision:</b> fixed text and simple rules, no live AI model. Reliable on every path, and the brief allows it.</li>
+        <li><b>Main decision:</b> fixed text and simple rules, no live AI model. Reliable on every path.</li>
         <li><b>AI output corrected:</b> the first draft made "coach" the best answer in every scene. I changed scene 3 so removing the obstacle is best and coaching there lowers trust.</li>
         <li><b>AI output rejected:</b> using ready-made website templates. They were not built for a choice-based app.</li>
         <li><b>Checked:</b> the AI wrote a test that clicks all paths. I did not rely on reading the code alone.</li>
@@ -92,9 +92,9 @@
 
   <h2 style="color:var(--navy);font-size:16px;margin:18px 0 8px">Details (click to open)</h2>
 
-  <details class="box"><summary><b>The 14 requirements I took from the brief, and where each is met</b></summary>
+  <details class="box"><summary><b>The 14 requirements, and where each is met</b></summary>
     <table>
-      <tr><th>#</th><th>Requirement (brief)</th><th>Where it is in the app</th></tr>
+      <tr><th>#</th><th>Requirement</th><th>Where it is in the app</th></tr>
       <tr><td>R1</td><td>A small web app called "Team Ownership Simulator"</td><td>index.html, opens in any browser</td></tr>
       <tr><td>R2</td><td>User plays a manager, decides how to help Alex in real situations</td><td>4 scenes, 3–4 choices each</td></tr>
       <tr><td>R3</td><td>At least two scenes; an earlier choice changes what happens later</td><td>Scenes 2–4 change with Alex's ownership so far</td></tr>
@@ -106,7 +106,7 @@
       <tr><td>R9</td><td>Fixed text and simple rules are enough</td><td>No AI model, login or server</td></tr>
       <tr><td>R10</td><td>State survives replay and restart</td><td>Snapshot before every scene, saved in localStorage</td></tr>
       <tr><td>R11</td><td>Clear to use</td><td>One decision per screen, Home button, situation cards, EN/DE</td></tr>
-      <tr><td>S1</td><td>Submit the app and what is needed to run it</td><td>This zip, README.pdf</td></tr>
+      <tr><td>S1</td><td>Ship the app and what is needed to run it</td><td>This repository, README</td></tr>
       <tr><td>S2</td><td>A note of up to 150 words (decision, AI output corrected, unfinished)</td><td>NOTE.pdf (149 words)</td></tr>
       <tr><td>S3</td><td>One line on tools and reused work</td><td>Last line of NOTE.pdf</td></tr>
     </table>
@@ -138,10 +138,10 @@
     <table>
       <tr><th>Decision</th><th>Why</th><th>Accepted downside</th></tr>
       <tr><td>One HTML file, no framework</td><td>Opens anywhere, nothing to install, every line explainable</td><td>Not built for a large app</td></tr>
-      <tr><td>Fixed text, no live AI model</td><td>Reliable on every path; the brief allows it</td><td>Alex cannot answer free text</td></tr>
+      <tr><td>Fixed text, no live AI model</td><td>Reliable on every path</td><td>Alex cannot answer free text</td></tr>
       <tr><td>Two numbers: ownership and trust</td><td>Ownership alone would make "never help" look right; trust shows the cost of leaving Alex alone</td><td>A simplification of real behaviour</td></tr>
-      <tr><td>Five kinds of help</td><td>Covers the brief: take over, coach, show, remove an obstacle, leave alone</td><td>Real managers mix them</td></tr>
-      <tr><td>4 scenes, not more</td><td>The brief: a working rough version beats a polished outline; fits 3–5 minutes</td><td>Fewer situations</td></tr>
+      <tr><td>Five kinds of help</td><td>Covers the main options: take over, coach, show, remove an obstacle, leave alone</td><td>Real managers mix them</td></tr>
+      <tr><td>4 scenes, not more</td><td>A working rough version beats a polished outline; fits 3–5 minutes</td><td>Fewer situations</td></tr>
       <tr><td>Snapshot before each scene, saved in the browser</td><td>Replay and restart always restore the right state</td><td>Saved per browser only</td></tr>
       <tr><td>Thresholds 42 / 62 for the three levels</td><td>Clear bands: waits for you / asks first / comes with a plan</td><td>My judgement; an expert should tune them</td></tr>
       <tr><td>Situation cards and a Report button</td><td>A busy manager can start with today's problem or see the result directly</td><td>A jump skips earlier context</td></tr>
