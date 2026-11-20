@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How I built it</title>
+<style>
+  :root{--navy:#01436C;--coral:#F25C54;--teal:#00BCD4;--green:#3fa67a;--amber:#e3a33b;--ink:#2F3E46;--muted:#6b7a83;--bg:#f4f6f7;--line:#dfe5e8;--card:#ffffff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45}
+  header{background:var(--navy);color:#fff;padding:14px 20px}
+  header h1{margin:0;font-size:18px} header div{font-size:13px;opacity:.8}
+  .wrap{max-width:1080px;margin:0 auto;padding:18px 16px 30px}
+  .pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:6px 0 16px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;position:relative}
+  .step .n{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:13px;align-items:center;justify-content:center}
+  .step h3{margin:6px 0 4px;font-size:15px;color:var(--navy)}
+  .step p{margin:0;font-size:13px}
+  .step .t{font-size:11px;color:var(--coral);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+  .step:not(:last-child)::after{content:"→";position:absolute;right:-12px;top:42%;color:var(--coral);font-weight:700}
+  .grid{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
+  .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+  .box h2{font-size:15px;color:var(--navy);margin:0 0 8px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  td,th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  .d{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+  ul{margin:0;padding-left:18px;font-size:13px} li{margin:3px 0}
+  .flow{font-size:13px;background:var(--soft);border-radius:10px;padding:8px 10px;margin-top:8px}
+  @media (max-width:800px){.pipe,.grid{grid-template-columns:1fr}.step:not(:last-child)::after{content:"↓";right:auto;left:50%;top:auto;bottom:-16px}}
+
+  :root{--soft:#eef6fa;--tint:#eef1f3;--quoteBg:#fff6f5}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --ink:#e6edf1; --muted:#9fb0ba; --bg:#0f1a21; --card:#17252e; --line:#2a3b46; --soft:#1d3240; --tint:#22323c; --quoteBg:#2a1f20 } }
+  :root[data-theme="dark"]{ --ink:#e6edf1; --muted:#9fb0ba; --bg:#0f1a21; --card:#17252e; --line:#2a3b46; --soft:#1d3240; --tint:#22323c; --quoteBg:#2a1f20 }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) h2, :root:not([data-theme="light"]) h3{color:#7cc7e8 !important} }
+  :root[data-theme="dark"] h2, :root[data-theme="dark"] h3{color:#7cc7e8 !important}
+</style>
+</head>
+<body>
+<header><h1>Team Ownership Simulator: how I built it</h1><div>Nitish Savadakar · AI product case study · 90 minutes</div></header>
+<main class="wrap">
+  <div class="pipe">
+    <div class="step"><span class="n">1</span><div class="t">Understand</div><h3>Brief → checklist</h3><p>Turned the brief into 14 testable requirements: ≥2 connected scenes, 3–5 min, replay and restart, clear to use.</p></div>
+    <div class="step"><span class="n">2</span><div class="t">Design</div><h3>Model before code</h3><p>Alex = two numbers, <b>ownership</b> and <b>trust</b>. Five kinds of help, each changes them differently.</p></div>
+    <div class="step"><span class="n">3</span><div class="t">Write</div><h3>4 scenes as data</h3><p>Text and rules in one place. Later scenes read Alex's state, so earlier choices change them.</p></div>
+    <div class="step"><span class="n">4</span><div class="t">Build</div><h3>One HTML file</h3><p>Small engine: show scene → apply choice → pop-up → next. Snapshot before every scene, saved in the browser.</p></div>
+    <div class="step"><span class="n">5</span><div class="t">Check</div><h3>Test every path</h3><p>Script clicked all 192 paths + 24 button checks. Reviewed screenshots, corrected the AI output.</p></div>
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <h2>The four scenes and the five kinds of help</h2>
+      <table>
+        <tr><th>Scene</th><th>What changes it</th></tr>
+        <tr><td>1 · The client presentation</td><td>Starting point</td></tr>
+        <tr><td>2 · The angry customer</td><td>After a take-over Alex comes with no draft; after coaching, with a draft</td></tr>
+        <tr><td>3 · The blocked data</td><td>Best help: <b>remove the obstacle</b>, which only the manager can do</td></tr>
+        <tr><td>4 · The decision without you</td><td>One calm FYI, or six messages on your holiday</td></tr>
+      </table>
+      <div class="flow">
+        <span class="d" style="background:var(--coral)"></span>Take over ·
+        <span class="d" style="background:var(--green)"></span>Coach ·
+        <span class="d" style="background:var(--teal)"></span>Show, then step back ·
+        <span class="d" style="background:var(--navy)"></span>Remove an obstacle ·
+        <span class="d" style="background:var(--amber)"></span>Leave alone
+      </div>
+      <table style="margin-top:8px">
+        <tr><th>Ownership</th><th>Alex</th><th>Ending</th></tr>
+        <tr><td>0–41</td><td>Waits for you</td><td>The comfortable room</td></tr>
+        <tr><td>42–61</td><td>Asks first</td><td>Getting there</td></tr>
+        <tr><td>62–100</td><td>Comes with a plan</td><td>Alex owns the work</td></tr>
+        <tr><td colspan="3">Trust below 40 → Alex leaves the team (refusing help has a cost too)</td></tr>
+      </table>
+    </div>
+    <div class="box">
+      <h2>Decisions and checks</h2>
+      <ul>
+        <li><b>Main decision:</b> fixed text and simple rules, no live AI model. Reliable on every path, and the brief allows it.</li>
+        <li><b>AI output corrected:</b> the first draft made "coach" the best answer in every scene. I changed scene 3 so removing the obstacle is best and coaching there lowers trust.</li>
+        <li><b>AI output rejected:</b> using ready-made website templates. They were not built for a choice-based app.</li>
+        <li><b>Checked:</b> the AI wrote a test that clicks all paths. I did not rely on reading the code alone.</li>
+        <li><b>Refined:</b> a home page with urgent situations for busy managers, clickable choice dots, professional wording.</li>
+      </ul>
+      <h2 style="margin-top:12px">Tools and shortcuts</h2>
+      <ul>
+        <li>Claude Code (Opus) · HTML, CSS, JavaScript · browser localStorage · headless Chrome for tests</li>
+        <li>Shortcuts: the numbers are my judgement (a psychologist should set them), English and German (German needs a native review), one Alex, not yet tested with real managers</li>
+        <li>Next: test with 3 managers, tune the rules with an expert, then consider a free-text Alex</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 style="color:var(--navy);font-size:16px;margin:18px 0 8px">Details (click to open)</h2>
+
+  <details class="box"><summary><b>The 14 requirements I took from the brief, and where each is met</b></summary>
+    <table>
+      <tr><th>#</th><th>Requirement (brief)</th><th>Where it is in the app</th></tr>
+      <tr><td>R1</td><td>A small web app called "Team Ownership Simulator"</td><td>index.html, opens in any browser</td></tr>
+      <tr><td>R2</td><td>User plays a manager, decides how to help Alex in real situations</td><td>4 scenes, 3–4 choices each</td></tr>
+      <tr><td>R3</td><td>At least two scenes; an earlier choice changes what happens later</td><td>Scenes 2–4 change with Alex's ownership so far</td></tr>
+      <tr><td>R4</td><td>A complete run takes about 3–5 minutes</td><td>4 scenes + ending</td></tr>
+      <tr><td>R5</td><td>Meaningful, emotionally impactful</td><td>Pop-up: what happened, what Alex thinks, what you feel; the ending three months later</td></tr>
+      <tr><td>R6</td><td>Taking over weakens ownership; refusing help leaves people stuck; sometimes the manager must step in</td><td>Two meters (ownership, trust); scene 3 rewards removing the obstacle</td></tr>
+      <tr><td>R7</td><td>Try a choice, see what happens, replay with another approach</td><td>Try another response, Previous/Next scene, choice dots, Replay from 1–4</td></tr>
+      <tr><td>R8</td><td>Bonus: remember decisions, Alex changes with the pattern, consequences over time</td><td>Saved in the browser; Alex's lines follow ownership; chart with previous try</td></tr>
+      <tr><td>R9</td><td>Fixed text and simple rules are enough</td><td>No AI model, login or server</td></tr>
+      <tr><td>R10</td><td>State survives replay and restart</td><td>Snapshot before every scene, saved in localStorage</td></tr>
+      <tr><td>R11</td><td>Clear to use</td><td>One decision per screen, Home button, situation cards, EN/DE</td></tr>
+      <tr><td>S1</td><td>Submit the app and what is needed to run it</td><td>This zip, README.pdf</td></tr>
+      <tr><td>S2</td><td>A note of up to 150 words (decision, AI output corrected, unfinished)</td><td>NOTE.pdf (149 words)</td></tr>
+      <tr><td>S3</td><td>One line on tools and reused work</td><td>Last line of NOTE.pdf</td></tr>
+    </table>
+  </details>
+
+  <details class="box" style="margin-top:8px"><summary><b>The 4 scenes, the choices, and what changes</b></summary>
+    <table>
+      <tr><th>Scene</th><th>Situation</th><th>Choices</th><th>How earlier choices change it</th></tr>
+      <tr><td>1 · Monday</td><td>Alex's client deck has no clear message, pitch on Thursday</td><td>Take over · Coach · Show one slide · Leave alone</td><td>Starting point</td></tr>
+      <tr><td>2 · Wednesday</td><td>An angry customer threatens to cancel</td><td>Take over · Coach · Listen in + debrief · Leave alone</td><td>Low ownership: Alex brings no draft. High: Alex brings a draft. "Leave alone" only works if Alex is ready.</td></tr>
+      <tr><td>3 · Friday</td><td>Another team blocks the data Alex needs</td><td>Take over · Coach · Remove the obstacle · Leave alone</td><td>If Alex has already tried everything, coaching lowers trust. Removing the obstacle is the best help.</td></tr>
+      <tr><td>4 · Four weeks later</td><td>A client decision while you are on holiday</td><td>Take over · Short call, Alex decides · Hand over fully</td><td>High ownership: one calm FYI. Low: six messages in two hours.</td></tr>
+    </table>
+  </details>
+
+  <details class="box" style="margin-top:8px"><summary><b>What I tested, in plain words</b></summary>
+    <table>
+      <tr><th>Test</th><th>What it means</th><th>Result</th></tr>
+      <tr><td>All paths</td><td>A script played every combination of choices: 4 × 4 × 4 × 3 = 192 different runs</td><td>No errors; all 4 endings reachable</td></tr>
+      <tr><td>Every button</td><td>Start, Continue, Report, situation cards, choices, Next, Try another response, Previous/Next scene, choice dots, Home, Restart, Replay from 1–4, Start again, Clear saved runs</td><td>All work</td></tr>
+      <tr><td>Replay and restart</td><td>After replaying a scene, Alex's numbers return exactly to what they were before that scene</td><td>Correct</td></tr>
+      <tr><td>Reload</td><td>Close or refresh the browser, and progress is still there</td><td>Correct</td></tr>
+      <tr><td>Language</td><td>Switch EN ↔ DE on the home page, in a scene, in a pop-up and on the ending</td><td>All text switches both ways</td></tr>
+      <tr><td>Visual check</td><td>Screenshots of each screen reviewed</td><td>Layout and colours correct</td></tr>
+    </table>
+  </details>
+
+  <details class="box" style="margin-top:8px"><summary><b>Every decision and why</b></summary>
+    <table>
+      <tr><th>Decision</th><th>Why</th><th>Accepted downside</th></tr>
+      <tr><td>One HTML file, no framework</td><td>Opens anywhere, nothing to install, every line explainable</td><td>Not built for a large app</td></tr>
+      <tr><td>Fixed text, no live AI model</td><td>Reliable on every path; the brief allows it</td><td>Alex cannot answer free text</td></tr>
+      <tr><td>Two numbers: ownership and trust</td><td>Ownership alone would make "never help" look right; trust shows the cost of leaving Alex alone</td><td>A simplification of real behaviour</td></tr>
+      <tr><td>Five kinds of help</td><td>Covers the brief: take over, coach, show, remove an obstacle, leave alone</td><td>Real managers mix them</td></tr>
+      <tr><td>4 scenes, not more</td><td>The brief: a working rough version beats a polished outline; fits 3–5 minutes</td><td>Fewer situations</td></tr>
+      <tr><td>Snapshot before each scene, saved in the browser</td><td>Replay and restart always restore the right state</td><td>Saved per browser only</td></tr>
+      <tr><td>Thresholds 42 / 62 for the three levels</td><td>Clear bands: waits for you / asks first / comes with a plan</td><td>My judgement; an expert should tune them</td></tr>
+      <tr><td>Situation cards and a Report button</td><td>A busy manager can start with today's problem or see the result directly</td><td>A jump skips earlier context</td></tr>
+      <tr><td>Minimal animation, professional wording</td><td>The users are managers and leaders</td><td>Less playful</td></tr>
+      <tr><td>English / German</td><td>Users work in both languages; the dictionary keeps one source text</td><td>German wording needs a native review</td></tr>
+    </table>
+  </details>
+</main>
+</body>
+</html>

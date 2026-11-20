@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Ownership Simulator</title>
+<style>
+  :root{
+    --navy:#01436C; --coral:#F25C54; --teal:#00BCD4; --green:#3fa67a; --amber:#e3a33b;
+    --ink:#2F3E46; --muted:#6b7a83; --bg:#f4f6f7; --card:#ffffff; --line:#dfe5e8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.2px}
+  header .sub{font-size:13px;opacity:.8}
+  .wrap{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+  .meters{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .meter{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+  .meter .label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+  .meter .label b{color:var(--ink)}
+  .bar{height:10px;background:var(--tint);border-radius:6px;overflow:hidden;margin-top:6px}
+  .bar > i{display:block;height:100%;border-radius:6px;transition:width .8s ease}
+  .own > i{background:var(--teal)} .trust > i{background:var(--coral)}
+  .timeline{display:flex;gap:8px;align-items:center;margin:4px 0 16px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .dot{width:26px;height:26px;border-radius:50%;border:2px dashed var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700}
+  .dot.now{border-color:var(--navy)}
+  button.dot{padding:0;background:var(--card);color:var(--muted);font-family:inherit;cursor:pointer;transition:transform .15s}
+  button.dot:disabled{cursor:default}
+  button.dot:not(:disabled):hover{transform:scale(1.15)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:0 2px 10px rgba(1,67,108,.05)}
+  .when{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--coral);font-weight:700}
+  h2{margin:4px 0 12px;color:var(--navy);font-size:22px}
+  .situation{font-size:16px}
+  .alex{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border-radius:12px;padding:12px 14px;margin:14px 0}
+  .avatar{flex:none;width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .alex q{font-style:italic;quotes:"\201C" "\201D"}
+  .mood{font-size:12px;color:var(--muted);margin-top:4px}
+  .ask{font-weight:600;margin:16px 0 8px}
+  .choices{display:grid;gap:10px}
+  .choice{text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;font-size:15px;cursor:pointer;color:var(--ink);transition:border-color .15s, transform .15s}
+  .choice:hover,.choice:focus{border-color:var(--navy);outline:none;transform:translateY(-1px)}
+  .choice small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .btn{border:0;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-weight:600}
+  .btn.primary{background:var(--navy);color:#fff}
+  .btn.ghost{background:var(--card);border:1.5px solid var(--line);color:var(--ink)}
+  .btn.coral{background:var(--coral);color:#fff}
+  .linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12px}
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(20,35,45,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex;animation:fade .25s ease}
+  .modal{background:var(--card);border-radius:18px;max-width:560px;width:100%;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.25);animation:rise .3s ease;max-height:90vh;overflow:auto}
+  .modal h3{margin:0 0 10px;color:var(--navy)}
+  .layer{border-left:4px solid var(--line);padding:6px 12px;margin:10px 0}
+  .layer .k{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
+  .layer.alexin{border-color:var(--teal)} .layer.you{border-color:var(--amber)} .layer.then{border-color:var(--navy)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:13px;padding:4px 10px;border-radius:999px;font-weight:600}
+  .up{background:#e3f5ec;color:#1f7a52} .down{background:#fde7e6;color:#b23a33} .flat{background:var(--tint);color:var(--muted)}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+  .quote{border-left:4px solid var(--coral);padding:8px 14px;background:var(--quoteBg);border-radius:6px;margin:14px 0;font-style:italic}
+  .quote cite{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:4px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;background:var(--c)}
+  table.pattern{border-collapse:collapse;width:100%;font-size:14px;margin-top:8px}
+  table.pattern td{padding:6px 8px;border-bottom:1px solid var(--line)}
+  .hist{font-size:13px;color:var(--muted)}
+  .scenes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+  .scenecard{text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--ink)}
+  .scenecard:hover,.scenecard:focus{border-color:var(--navy);outline:none}
+  .scenecard span:last-child{color:var(--muted);font-size:13px}
+  .tag{align-self:flex-start;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 8px;border-radius:999px;background:var(--tint);color:var(--muted)}
+  .tag.hot{background:#fde7e6;color:#b23a33}
+  svg text{font-family:inherit}
+  @media (max-width:560px){ .meters{grid-template-columns:1fr} .card{padding:18px} h2{font-size:19px} }
+
+  :root{--soft:#eef6fa;--tint:#eef1f3;--quoteBg:#fff6f5}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --ink:#e6edf1; --muted:#9fb0ba; --bg:#0f1a21; --card:#17252e; --line:#2a3b46; --soft:#1d3240; --tint:#22323c; --quoteBg:#2a1f20 } }
+  :root[data-theme="dark"]{ --ink:#e6edf1; --muted:#9fb0ba; --bg:#0f1a21; --card:#17252e; --line:#2a3b46; --soft:#1d3240; --tint:#22323c; --quoteBg:#2a1f20 }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) h2, :root:not([data-theme="light"]) h3{color:#7cc7e8 !important} }
+  :root[data-theme="dark"] h2, :root[data-theme="dark"] h3{color:#7cc7e8 !important}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Team Ownership Simulator</h1><div class="sub">You lead a team. Alex is one of your people.</div></div>
+  <div class="row" style="margin:0"><select id="lang" aria-label="Language" style="border-radius:10px;padding:6px 8px;font-weight:600;border:0"><option value="en">English</option><option value="de">Deutsch</option></select><button class="btn ghost" id="homeTop" style="padding:6px 12px">⌂ Home</button><button class="btn ghost" id="restartTop" style="padding:6px 12px">Restart</button></div>
+</header>
+
+<main class="wrap">
+  <section id="hud" hidden>
+    <div class="meters">
+      <div class="meter"><div class="label"><span>Alex's ownership</span><b id="ownVal">50</b></div><div class="bar own"><i id="ownBar"></i></div><div class="mood" id="ownLvl"></div></div>
+      <div class="meter"><div class="label"><span>Alex's trust in you</span><b id="trustVal">50</b></div><div class="bar trust"><i id="trustBar"></i></div></div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+  <section id="screen"></section>
+</main>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true"><div class="modal" id="modal"></div></div>
+
+<script>
+/* =========================================================================
+   1. DATA: choice types, scenes and endings. All text and rules live here.
+   ========================================================================= */
+const TYPES = {
+  takeover: {label:"Took over",       color:"#F25C54"},
+  coach:    {label:"Coached",         color:"#3fa67a"},
+  model:    {label:"Showed, then stepped back", color:"#00BCD4"},
+  unblock:  {label:"Removed an obstacle", color:"#01436C"},
+  withhold: {label:"Left Alex alone", color:"#e3a33b"}
+};
+
+// Helper: what Alex is like right now, derived from the state.
+const level = s => s.own >= 62 ? "high" : s.own >= 42 ? "mid" : "low";
+const LEVEL_TEXT = { low:"Waits for you to act", mid:"Asks you before deciding", high:"Comes with a plan" };
+
+const SCENES = [
+  { id:"deck", when:"Monday, 9:10", urgency:"Due Thursday", title:"The client presentation", teaser:"Alex's pitch deck is a mess and Alex asks you to fix it.",
+    situation: s => "The pitch to Brightline, your most important client, is on Thursday. Alex has built the deck. It has 14 slides and no clear message.",
+    alex: s => ({ line:"I worked on this over the weekend, but it does not come together. Could you review it, or perhaps fix it?", mood:"Tired, a bit embarrassed" }),
+    ask:"How do you respond?",
+    choices: s => [
+      { type:"takeover", text:"\"Send it to me. I'll rework it tonight.\"", hint:"Fast, and it will look good.",
+        own:-15, trust:+6,
+        alexThinks:"Relieved. My manager will make it good. I would not have known how to fix it myself.",
+        youFeel:"Useful. It took you two hours and Alex thanked you three times.",
+        then:"On Thursday the pitch goes well. The client thanks you. Alex sits next to you and says almost nothing." },
+      { type:"coach", text:"\"Walk me through it. What's the one thing Brightline must remember?\"", hint:"Slower. Alex does the work.",
+        own:+12, trust:+5,
+        alexThinks:"A difficult question. Their main issue is late deliveries. Everything else is secondary.",
+        youFeel:"Impatient. You could fix this in twenty minutes yourself.",
+        then:"Alex cuts the deck to seven slides around one message. Thursday is a little shaky in the Q&A, but it is Alex's pitch, and Alex knows it." },
+      { type:"model", text:"\"Let me redo the first slide with you, then you do the rest the same way.\"", hint:"Show the standard, then hand it back.",
+        own:+6, trust:+6,
+        alexThinks:"Now I can see the standard for an opening slide. I can apply it to the rest.",
+        youFeel:"Good. You helped without taking the pen away for long.",
+        then:"Alex rebuilds the rest. The deck is solid. Alex still checks two slides with you on Wednesday night." },
+      { type:"withhold", text:"\"You'll figure it out. I trust you.\"", hint:"No help.",
+        own:-4, trust:-12,
+        alexThinks:"I asked for help and did not get it. I still do not know what is wrong with the deck.",
+        youFeel:"Principled. Also a little relieved: one thing less on your plate.",
+        then:"Alex stays late twice. The deck gets longer, not clearer. The client looks confused on Thursday, and Alex avoids you on Friday." }
+    ]},
+
+  { id:"customer", when:"Wednesday, 16:40", urgency:"Urgent today", title:"The angry customer", teaser:"A client threatens to cancel. Alex wants you to call them.",
+    situation: s => "Nordwerk, another client, writes: their shipment is late and they threaten to cancel the contract. It is Alex's account.",
+    alex: s => {
+      const l = level(s);
+      if (s.trust < 40) return { line:"(You only find out because you were in CC. Alex hasn't come to you.) …Yes, I saw it. I didn't want to bother you again.", mood:"Withdrawn" };
+      if (l === "low")  return { line:"Nordwerk is furious. Can you call them? You're much better at this than me.", mood:"Arrives with the laptop closed. No draft, no plan." };
+      if (l === "mid")  return { line:"Nordwerk is upset. I'm not sure what to offer them. What would you do?", mood:"Worried, but thinking about it" };
+      return { line:"Nordwerk is upset. I drafted a reply: a partial shipment on Friday and a call tomorrow. Can you look before I send it?", mood:"Nervous, but prepared" };
+    },
+    ask:"What do you do?",
+    choices: s => [
+      { type:"takeover", text:"\"Leave it with me. I'll call them now.\"", hint:"The client is calmed by someone senior.",
+        own:-15, trust:+4,
+        alexThinks: level(s)==="high" ? "I had a plan. There was no point in preparing it." : "Relieved. I would probably have made it worse.",
+        youFeel:"In control. You are good at angry clients.",
+        then:"Nordwerk calms down after your call. Next time they have a problem, they email you, not Alex." },
+      { type:"coach", text:"\"What do you think they need to hear first? Let's rehearse the first 30 seconds.\"", hint:"Prepare together, Alex makes the call.",
+        own:+12, trust:+6,
+        alexThinks:"They need to hear that someone owns this. That should be me.",
+        youFeel:"Uneasy while Alex is on the phone. You stay at your desk anyway.",
+        then:"Alex calls Nordwerk. It is tense, but Alex offers the partial shipment and a date. Afterwards you debrief for ten minutes: what worked, what to say differently." },
+      { type:"model", text:"\"Call them, and I'll listen in. We'll debrief straight after.\"", hint:"Guidance beforehand, debrief afterwards.",
+        own:+8, trust:+8,
+        alexThinks:"Knowing they're on the line makes it easier to speak up.",
+        youFeel:"You hold back twice. It works.",
+        then:"Alex handles the call. In the debrief Alex asks you for the one thing to improve. You give it honestly." },
+      { type:"withhold", text:"\"Your customer, your call.\"", hint:"Full autonomy.",
+        own: level(s)==="high" ? +8 : -8, trust: level(s)==="high" ? +2 : -10,
+        alexThinks: level(s)==="high" ? "I have a plan. I can handle this." : "I have never handled a client escalation like this. I expected support.",
+        youFeel:"You tell yourself it's good for Alex's growth.",
+        then: level(s)==="high" ? "Alex sends the reply and calls. Nordwerk accepts the partial shipment." : "Alex sends a long, defensive email. Nordwerk escalates to your boss." }
+    ]},
+
+  { id:"blocker", when:"Friday, 11:00", urgency:"Due Monday", title:"The blocked data", teaser:"Alex is blocked by another team. Only you can unblock it.",
+    situation: s => "To keep Nordwerk, Alex needs a recovery plan by Monday. It needs delivery data from Jonas, who leads the logistics team and is your peer. Jonas has not answered.",
+    alex: s => {
+      const l = level(s);
+      if (l === "low") return { line:"Jonas has not replied to my email. I am waiting for you to resolve it.", mood:"Sent one email, then stopped" };
+      return { line:"I've emailed Jonas three times and called twice. His team says only he can release the data. I've run out of options. Could you help with this one thing?", mood:"Frustrated, but has done everything they can" };
+    },
+    ask:"This time, what does Alex need from you?",
+    choices: s => [
+      { type:"takeover", text:"\"Give me the whole plan. I'll write it over the weekend.\"", hint:"Problem solved.",
+        own:-15, trust:+3,
+        alexThinks:"It was never really my plan.",
+        youFeel:"Tired. Another weekend gone, but Nordwerk is safe.",
+        then:"Your plan is ready on Monday. Alex presents it to Nordwerk, but reads it for the first time on the train that morning, and can't answer their follow-up questions." },
+      { type:"coach", text:"\"How else could you get Jonas's attention? Think about what he cares about.\"", hint:"Push Alex to try again.",
+        own: level(s)==="low" ? +6 : -4, trust: level(s)==="low" ? +2 : -8,
+        alexThinks: level(s)==="low" ? "Fair. I only sent one email. I could walk over to his team." : "I've already tried everything I can. This is a manager-to-manager problem.",
+        youFeel:"Like a good coach. Is that what Alex needs right now?",
+        then: level(s)==="low" ? "Alex goes to the logistics team in person and gets half the data." : "Alex tries once more and fails. The weekend gets closer, and the plan is still blocked." },
+      { type:"unblock", text:"\"I'll call Jonas, manager to manager, and get the data released. The plan stays yours.\"", hint:"Do only the part only you can do.",
+        own:+10, trust:+12,
+        alexThinks:"My manager removed the blocker and left the plan with me. That was exactly the support I needed.",
+        youFeel:"A five-minute call. It didn't feel like 'helping', but it was the most useful thing you did all week.",
+        then:"Jonas sends the data within the hour. Alex writes the recovery plan and presents it on Monday." },
+      { type:"withhold", text:"\"Keep pushing. He'll answer eventually.\"", hint:"Stay out of it.",
+        own:-8, trust:-12,
+        alexThinks:"I am blocked, and my manager is not stepping in.",
+        youFeel:"Busy with your own things. You assume it will sort itself out.",
+        then:"The data arrives on Tuesday. The recovery plan is late and Nordwerk notices." }
+    ]},
+
+  { id:"holiday", when:"Four weeks later · you are on holiday", urgency:"While you're away", title:"The decision without you", teaser:"A client decision is needed while you are on holiday.",
+    situation: s => "Brightline wants to change the delivery plan and needs an answer by Wednesday. You are on a beach. Your phone buzzes.",
+    alex: s => {
+      const l = level(s);
+      if (l === "high") return { line:"FYI: Brightline wants to change the plan. I checked capacity with Jonas, and I'm proposing option B. Let me know only if you see a problem. Enjoy your holiday.", mood:"One message. Calm." };
+      if (l === "mid")  return { line:"Brightline needs a decision by Wednesday. I'm leaning towards option B, but I'm not sure. Could we talk for 10 minutes?", mood:"Two messages" };
+      return { line:"Sorry to disturb your holiday. Brightline needs an answer. What should I tell them? … They are asking again.", mood:"Six messages in two hours" };
+    },
+    ask:"How do you reply?",
+    choices: s => [
+      { type:"takeover", text:"Call Brightline yourself from the beach and decide.", hint:"Quickest answer for the client.",
+        own:-10, trust:+2,
+        alexThinks:"As expected. No decision is made here without my manager.",
+        youFeel:"Needed. Also: this is your third work call this holiday.",
+        then:"Brightline gets an answer. Alex forwards you the next three questions too." },
+      { type:"coach", text:"\"10 minutes. Tell me your recommendation first, then I'll tell you what I'd check.\"", hint:"A short call, Alex decides.",
+        own:+8, trust:+6,
+        alexThinks:"My manager expects a recommendation from me. I need to prepare one.",
+        youFeel:"A short call. Then back to the beach.",
+        then:"Alex decides on option B, with one check you suggested. Brightline agrees." },
+      { type:"withhold", text:"\"Your call. I trust your judgement.\"", hint:"Hand over the decision fully.",
+        own: level(s)==="high" ? +10 : -10, trust: level(s)==="high" ? +6 : -10,
+        alexThinks: level(s)==="high" ? "My manager means it. I am ready to decide." : "I am not confident in my own judgement. I have rarely had to use it.",
+        youFeel: level(s)==="high" ? "Confident in Alex. You stay on holiday." : "Uneasy. You switch the phone off.",
+        then: level(s)==="high" ? "Alex decides by Monday. Brightline is happy." : "Alex waits until Wednesday, then picks an option at random. Brightline is unhappy." }
+    ]}
+];
+
+const QUOTE_CARE = { text:"Genuine care would have offered a deep relationship, coupled with profound challenge.", cite:"From a leadership article" };
+const QUOTE_ROOM = { text:"I feel like I have been standing still in a very comfortable room. It was like living in a bubble.", cite:"A departing team member, quoted in a leadership article" };
+
+function ending(s){
+  if (s.trust < 40) return { key:"alone", title:"Alex left the team",
+    alex:"I asked for help when I needed it, and I mostly got 'figure it out'. I learned to stop asking.",
+    text:"Six months later Alex moves to another team. Refusing help did not build ownership. It left Alex stuck and alone.",
+    quote: QUOTE_CARE };
+  if (level(s) === "low") return { key:"room", title:"The comfortable room",
+    alex:"I really like working for you. I just can't say what I've learned this year.",
+    text:"Three months later a team-lead role opens. Alex applies and is turned down: \"not yet ready to own client decisions\". Everything you did worked, and Alex did not grow.",
+    quote: QUOTE_ROOM };
+  if (level(s) === "high") return { key:"grown", title:"Alex owns the work",
+    alex:"I used to wait for you. Now I come with a plan, and I know you'll tell me straight if it isn't good enough.",
+    text:"Three months later Alex leads the Brightline account. You are needed less, and that is the point.",
+    quote: QUOTE_CARE };
+  return { key:"between", title:"Getting there",
+    alex:"I can do more on my own now. I still check with you before most decisions, out of habit.",
+    text:"Alex is more capable than in spring, but still waits for your go-ahead. Some of your help built ownership, and some took it away.",
+    quote: QUOTE_CARE };
+}
+
+/* =========================================================================
+   2. STATE: the current run, saved in localStorage so it survives reload,
+      replay and restart. Each scene keeps a snapshot of the state before it.
+   ========================================================================= */
+const KEY = "hwto.v1";
+const START = () => ({ own:50, trust:60 });
+let store = load();
+
+function load(){
+  try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch(e){}
+  return { run:null, history:[] };
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} }
+
+function newRun(){
+  store.run = { scene:0, state:START(), snapshots:[START()], choices:[], seen:false };
+  save();
+}
+const clamp = v => Math.max(0, Math.min(100, v));
+
+/* =========================================================================
+   3. RENDER
+   ========================================================================= */
+const $ = id => document.getElementById(id);
+
+function hud(show){
+  $("hud").hidden = !show;
+  if (!show || !store.run) return;
+  const s = store.run.state;
+  $("ownVal").textContent = s.own; $("trustVal").textContent = s.trust;
+  $("ownBar").style.width = s.own + "%"; $("trustBar").style.width = s.trust + "%";
+  $("ownLvl").textContent = "Alex now: " + LEVEL_TEXT[level(s)];
+  let t = "";
+  SCENES.forEach((sc,i)=>{
+    const c = store.run.choices[i];
+    const style = c ? `background:${TYPES[c.type].color};border:2px solid ${TYPES[c.type].color}` : "";
+    const cur = i === store.run.scene;                // every dot except the current scene is clickable
+    t += `<button class="dot ${cur?'now':''}" data-dot="${i}" ${cur?'disabled':''}
+           title="${sc.title}${c?': '+TYPES[c.type].label:''}" style="${style}">${i+1}</button>`;
+  });
+  $("timeline").innerHTML = `<span>Your choices:</span>${t}`;
+  document.querySelectorAll("[data-dot]").forEach(b => b.onclick = () => { closePopup(); goTo(+b.dataset.dot); });
+}
+
+function intro(){
+  hud(false);
+  window.scrollTo(0,0);
+  const inProgress = store.run && store.run.scene < SCENES.length && store.run.choices.some(Boolean);
+  $("screen").innerHTML = `
+    <div class="card">
+      <div class="when">About 4 minutes</div>
+      <h2>Alex needs your help this month.</h2>
+      <p class="situation">Choose how you help. See what it does to Alex.</p>
+      <div class="row">
+        ${inProgress ? '<button class="btn primary" id="cont">Continue</button>' : ""}
+        <button class="btn ${inProgress ? 'ghost' : 'primary'}" id="fresh">Start</button>
+        <button class="btn ghost" id="report">Report</button>
+      </div>
+    </div>
+    <h3 style="color:var(--navy);margin:22px 0 10px">Situations</h3>
+    <div class="scenes">${SCENES.map((sc,i)=>`
+      <button class="scenecard" data-start="${i}">
+        <span class="tag ${i===1?'hot':''}">${sc.urgency}</span>
+        <b>${sc.title}</b>
+        <span>${sc.teaser}</span>
+      </button>`).join("")}</div>
+    <p class="hist" style="margin-top:18px"><a href="process.html" style="color:var(--muted)">How it was built</a></p>`;
+  if ($("cont")) $("cont").onclick = () => route();
+  $("fresh").onclick = () => { newRun(); route(); };
+  $("report").onclick = () => { if (!store.run) newRun(); goTo(SCENES.length); };
+  document.querySelectorAll("[data-start]").forEach(b => b.onclick = () => startAt(+b.dataset.start));
+}
+
+// Jump straight into one situation. Alex starts at the default state.
+function startAt(i){
+  newRun();
+  const r = store.run;
+  r.scene = i;
+  r.snapshots = Array.from({length:i+1}, () => START());
+  save(); route();
+}
+
+function scene(){
+  const r = store.run, sc = SCENES[r.scene], s = r.state;
+  hud(true);
+  const a = sc.alex(s);
+  const opts = sc.choices(s);
+  $("screen").innerHTML = `
+    <div class="card">
+      <div class="when">Scene ${r.scene+1} of ${SCENES.length} · ${sc.when}</div>
+      <h2>${sc.title}</h2>
+      <p class="situation">${sc.situation(s)}</p>
+      <div class="alex"><div class="avatar">A</div><div><q>${a.line}</q><div class="mood">${a.mood}</div></div></div>
+      <div class="ask">${sc.ask}</div>
+      <div class="choices">${opts.map((o,i)=>`<button class="choice" data-i="${i}">${o.text}<small>${o.hint}</small></button>`).join("")}</div>
+      <div class="row" style="justify-content:space-between">
+        <button class="btn ghost" id="back" ${r.scene>0?'':'disabled style="visibility:hidden"'}>← Previous scene</button>
+        <button class="btn ghost" id="skip">${r.scene+1<SCENES.length ? 'Next scene →' : 'Report →'}</button>
+      </div>
+    </div>`;
+  document.querySelectorAll(".choice").forEach(b => b.onclick = () => choose(opts[+b.dataset.i]));
+  $("back").onclick = () => replayFrom(r.scene-1);
+  $("skip").onclick = () => goTo(r.scene+1);
+}
+
+function choose(o){
+  const r = store.run;
+  const before = { ...r.state };
+  r.state = { own: clamp(r.state.own + o.own), trust: clamp(r.state.trust + o.trust) };
+  r.choices[r.scene] = { type:o.type, text:o.text, dOwn:o.own, dTrust:o.trust };
+  r.choices.length = r.scene + 1;            // drop any later choices (replay)
+  r.snapshots[r.scene+1] = { ...r.state };
+  r.snapshots.length = r.scene + 2;
+  save();
+  hud(true);
+  popup(o, before, r.state);
+}
+
+function chip(label, d){
+  const cls = d>0 ? "up" : d<0 ? "down" : "flat";
+  return `<span class="chip ${cls}">${label} ${d>0?'+':''}${d}</span>`;
+}
+
+function popup(o, before, after){
+  const r = store.run;
+  $("modal").innerHTML = `
+    <h3>${TYPES[o.type].label}</h3>
+    <div class="layer then"><div class="k">What happened</div>${o.then}</div>
+    <div class="layer alexin"><div class="k">What Alex thinks</div><i>"${o.alexThinks}"</i></div>
+    <div class="layer you"><div class="k">What you feel</div>${o.youFeel}</div>
+    <div class="chips">${chip("Ownership", after.own-before.own)}${chip("Trust", after.trust-before.trust)}</div>
+    <div class="row">
+      <button class="btn primary" id="next">${r.scene+1 < SCENES.length ? "Next scene →" : "See what happened to Alex →"}</button>
+      <button class="btn ghost" id="retry">Try another response</button>
+      <button class="linkbtn" id="toHome">Back to home</button>
+    </div>`;
+  $("overlay").classList.add("show");
+  $("next").focus();
+  $("next").onclick = () => { closePopup(); r.scene++; save(); route(); };
+  $("retry").onclick = () => { closePopup(); replayFrom(r.scene); };
+  $("toHome").onclick = () => { closePopup(); r.scene++; save(); intro(); };
+}
+function closePopup(){ $("overlay").classList.remove("show"); }
+
+function goTo(i){
+  const r = store.run;
+  if (i <= r.scene || r.scene >= SCENES.length) { if (i < r.snapshots.length) return replayFrom(i); }
+  // jump forward: skipped scenes keep the current state
+  for (let k = r.snapshots.length; k <= i; k++) r.snapshots[k] = { ...r.state };
+  r.scene = i; r.seen = false; save(); route();
+}
+
+function replayFrom(i){
+  const r = store.run;
+  r.scene = i;
+  r.state = { ...r.snapshots[i] };
+  r.choices.length = i;
+  r.snapshots.length = i + 1;
+  r.seen = false;
+  save(); route();
+}
+
+function chart(){
+  // ownership after each scene: this run (bold) + your previous try (grey)
+  const W=520,H=180,P=30, n=SCENES.length;
+  const x = i => P + i*(W-2*P)/n, y = v => H-P - v*(H-2*P)/100;
+  const line = (pts,col,wd,op) => `<polyline fill="none" stroke="${col}" stroke-width="${wd}" opacity="${op}" points="${pts.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;
+  const cur = store.run.snapshots.map(s=>s.own);
+  let g = "";
+  const prev = store.history[store.history.length-2];   // the try before this one
+  if (prev) g += line(prev.path,"#9aa8b0",2,.6);
+  g += line(cur,"#00BCD4",4,1);
+  cur.forEach((v,i)=>{ const c = store.run.choices[i-1];
+    g += `<circle cx="${x(i)}" cy="${y(v)}" r="6" fill="${c?TYPES[c.type].color:'#2F3E46'}"/>`; });
+  const labels = ["Start", ...SCENES.map((s,i)=>"Scene "+(i+1))].map((l,i)=>`<text x="${x(i)}" y="${H-8}" font-size="11" text-anchor="middle" fill="#6b7a83">${l}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Alex's ownership over time">
+    <line x1="${P}" y1="${y(50)}" x2="${W-P}" y2="${y(50)}" stroke="#dfe5e8" stroke-dasharray="4 4"/>
+    <text x="${P-4}" y="${y(100)+4}" font-size="10" text-anchor="end" fill="#6b7a83">100</text>
+    <text x="${P-4}" y="${y(0)+4}" font-size="10" text-anchor="end" fill="#6b7a83">0</text>
+    ${g}${labels}</svg>`;
+}
+
+function end(){
+  const r = store.run, s = r.state, e = ending(s);
+  if (!r.seen){                          // record finished run once
+    store.history.push({ at:new Date().toISOString(), ending:e.key, own:s.own, trust:s.trust,
+      path:r.snapshots.map(x=>x.own), types:r.choices.filter(Boolean).map(c=>c.type) });
+    store.history = store.history.slice(-20);
+    r.seen = true; save();
+  }
+  hud(true);
+  const made = r.choices.filter(Boolean);
+  const counts = {}; made.forEach(c => counts[c.type]=(counts[c.type]||0)+1);
+  const rows = Object.keys(TYPES).filter(k=>counts[k]).map(k=>`<tr><td><span style="color:${TYPES[k].color}">●</span> ${TYPES[k].label}</td><td><b>${counts[k]}×</b></td></tr>`).join("");
+  $("screen").innerHTML = `
+    <div class="card">
+      <div class="when">Three months later</div>
+      <h2>${e.title}</h2>
+      <div class="alex"><div class="avatar">A</div><div><q>${e.alex}</q><div class="mood">Alex, in your next one-to-one</div></div></div>
+      <p class="situation">${e.text}</p>
+      <div class="quote">${e.quote.text}<cite>${e.quote.cite}</cite></div>
+      <h3 style="color:var(--navy);margin-bottom:4px">How Alex's ownership changed</h3>
+      ${chart()}
+      <div class="legend">${Object.keys(TYPES).map(k=>`<span style="--c:${TYPES[k].color}">${TYPES[k].label}</span>`).join("")}${store.history.length>1 ? '<span style="--c:#9aa8b0">Your previous try</span>' : ""}</div>
+      <p class="hist" style="margin-top:10px">Ownership: 0–41 waits for you · 42–61 asks first · 62–100 comes with a plan</p>
+      <h3 style="color:var(--navy);margin:18px 0 0">Your pattern</h3>
+      <table class="pattern">${rows}</table>
+      <p style="margin-top:16px"><b>Replay from</b></p>
+      <div class="row" style="margin-top:6px">
+        ${SCENES.map((sc,i)=>`<button class="btn ghost" data-from="${i}">${i+1}. ${sc.title.replace(/^The (.)/,(m,c)=>c.toUpperCase())}</button>`).join("")}
+      </div>
+      <div class="row">
+        <button class="btn coral" id="again">Start again</button>
+        <button class="linkbtn" id="clear">Clear saved runs</button>
+      </div>
+    </div>`;
+  document.querySelectorAll("[data-from]").forEach(b => b.onclick = () => replayFrom(+b.dataset.from));
+  $("again").onclick = () => { newRun(); route(); };
+  $("clear").onclick = () => { store = { run:null, history:[] }; save(); route(); };
+}
+
+function route(){
+  closePopup();
+  window.scrollTo(0,0);
+  if (!store.run) return intro();
+  if (store.run.scene >= SCENES.length) return end();
+  return scene();
+}
+
+$("restartTop").onclick = () => { newRun(); route(); };
+$("homeTop").onclick = () => { closePopup(); intro(); };
+
+
+/* =========================================================================
+   4. LANGUAGE: English / German. The UI is written in English; a dictionary
+      translates every visible text node (both directions) after each render.
+   ========================================================================= */
+const DE = {"Team Ownership Simulator": "Simulator für Eigenverantwortung im Team", "You lead a team. Alex is one of your people.": "Sie führen ein Team. Alex ist Teil davon.", "⌂ Home": "⌂ Start", "Restart": "Neu starten", "Alex's ownership": "Alex' Eigenverantwortung", "Alex's trust in you": "Alex' Vertrauen in Sie", "About 4 minutes": "Ca. 4 Minuten", "Alex needs your help this month.": "Alex braucht in diesem Monat Ihre Unterstützung.", "Choose how you help. See what it does to Alex.": "Entscheiden Sie, wie Sie helfen. Sehen Sie, was es bei Alex bewirkt.", "Start": "Start", "Report": "Bericht", "Continue": "Fortsetzen", "Situations": "Situationen", "Due Thursday": "Fällig Donnerstag", "The client presentation": "Die Kundenpräsentation", "Alex's pitch deck is a mess and Alex asks you to fix it.": "Alex' Präsentation ist unstrukturiert, und Alex bittet Sie, sie zu überarbeiten.", "Urgent today": "Heute dringend", "The angry customer": "Der verärgerte Kunde", "A client threatens to cancel. Alex wants you to call them.": "Ein Kunde droht mit Kündigung. Alex möchte, dass Sie anrufen.", "Due Monday": "Fällig Montag", "The blocked data": "Die blockierten Daten", "Alex is blocked by another team. Only you can unblock it.": "Ein anderes Team blockiert Alex. Nur Sie können das lösen.", "While you're away": "Während Ihrer Abwesenheit", "The decision without you": "Die Entscheidung ohne Sie", "A client decision is needed while you are on holiday.": "Während Ihres Urlaubs ist eine Kundenentscheidung nötig.", "Your choices:": "Ihre Entscheidungen:", "The pitch to Brightline, your most important client, is on Thursday. Alex has built the deck. It has 14 slides and no clear message.": "Die Präsentation für Brightline, Ihren wichtigsten Kunden, ist am Donnerstag. Alex hat die Folien erstellt: 14 Folien ohne klare Kernaussage.", "I worked on this over the weekend, but it does not come together. Could you review it, or perhaps fix it?": "Ich habe am Wochenende daran gearbeitet, aber es passt nicht zusammen. Könnten Sie es prüfen oder vielleicht überarbeiten?", "Tired, a bit embarrassed": "Müde, etwas verlegen", "How do you respond?": "Wie reagieren Sie?", "\"Send it to me. I'll rework it tonight.\"": "„Schicken Sie es mir. Ich überarbeite es heute Abend.“", "Fast, and it will look good.": "Schnell, und das Ergebnis sieht gut aus.", "\"Walk me through it. What's the one thing Brightline must remember?\"": "„Führen Sie mich durch. Was muss Brightline auf jeden Fall mitnehmen?“", "Slower. Alex does the work.": "Langsamer. Alex erledigt die Arbeit.", "\"Let me redo the first slide with you, then you do the rest the same way.\"": "„Wir überarbeiten die erste Folie gemeinsam, den Rest machen Sie nach diesem Muster.“", "Show the standard, then hand it back.": "Den Standard zeigen, dann zurückgeben.", "\"You'll figure it out. I trust you.\"": "„Das schaffen Sie schon. Ich vertraue Ihnen.“", "No help.": "Keine Unterstützung.", "← Previous scene": "← Vorherige Szene", "Next scene →": "Nächste Szene →", "Report →": "Bericht →", "Took over": "Übernommen", "Coached": "Gecoacht", "Showed, then stepped back": "Gezeigt, dann zurückgetreten", "Removed an obstacle": "Hindernis beseitigt", "Left Alex alone": "Alex allein gelassen", "What happened": "Was passiert ist", "What Alex thinks": "Was Alex denkt", "What you feel": "Was Sie empfinden", "On Thursday the pitch goes well. The client thanks you. Alex sits next to you and says almost nothing.": "Am Donnerstag läuft die Präsentation gut. Der Kunde bedankt sich bei Ihnen. Alex sitzt daneben und sagt kaum etwas.", "\"Relieved. My manager will make it good. I would not have known how to fix it myself.\"": "„Erleichtert. Meine Führungskraft macht es gut. Ich hätte nicht gewusst, wie ich es selbst verbessere.“", "Useful. It took you two hours and Alex thanked you three times.": "Nützlich. Es hat Sie zwei Stunden gekostet, und Alex hat sich dreimal bedankt.", "Try another response": "Andere Reaktion ausprobieren", "Back to home": "Zur Startseite", "Nordwerk, another client, writes: their shipment is late and they threaten to cancel the contract. It is Alex's account.": "Nordwerk, ein weiterer Kunde, schreibt: Die Lieferung ist verspätet, und man droht mit Vertragskündigung. Es ist Alex' Kunde.", "Nordwerk is furious. Can you call them? You're much better at this than me.": "Nordwerk ist sehr verärgert. Können Sie dort anrufen? Sie können das viel besser als ich.", "Arrives with the laptop closed. No draft, no plan.": "Kommt mit geschlossenem Laptop. Kein Entwurf, kein Plan.", "What do you do?": "Was tun Sie?", "\"Leave it with me. I'll call them now.\"": "„Ich übernehme das. Ich rufe sofort an.“", "The client is calmed by someone senior.": "Der Kunde wird von einer erfahrenen Person beruhigt.", "\"What do you think they need to hear first? Let's rehearse the first 30 seconds.\"": "„Was muss der Kunde Ihrer Meinung nach zuerst hören? Lassen Sie uns die ersten 30 Sekunden üben.“", "Prepare together, Alex makes the call.": "Gemeinsam vorbereiten, Alex führt das Gespräch.", "\"Call them, and I'll listen in. We'll debrief straight after.\"": "„Rufen Sie an, ich höre zu. Danach besprechen wir es direkt.“", "Guidance beforehand, debrief afterwards.": "Orientierung vorher, Nachbesprechung danach.", "\"Your customer, your call.\"": "„Ihr Kunde, Ihre Entscheidung.“", "Full autonomy.": "Volle Eigenständigkeit.", "Nordwerk calms down after your call. Next time they have a problem, they email you, not Alex.": "Nordwerk beruhigt sich nach Ihrem Anruf. Beim nächsten Problem schreibt der Kunde Ihnen, nicht Alex.", "\"Relieved. I would probably have made it worse.\"": "„Erleichtert. Ich hätte es wahrscheinlich verschlimmert.“", "In control. You are good at angry clients.": "Souverän. Mit verärgerten Kunden können Sie gut umgehen.", "To keep Nordwerk, Alex needs a recovery plan by Monday. It needs delivery data from Jonas, who leads the logistics team and is your peer. Jonas has not answered.": "Um Nordwerk zu halten, braucht Alex bis Montag einen Maßnahmenplan. Dafür sind Lieferdaten von Jonas nötig, Leiter der Logistik und Ihr Kollege auf gleicher Ebene. Jonas hat nicht geantwortet.", "Jonas has not replied to my email. I am waiting for you to resolve it.": "Jonas hat auf meine E-Mail nicht geantwortet. Ich warte darauf, dass Sie es klären.", "Sent one email, then stopped": "Eine E-Mail geschickt, dann aufgehört", "This time, what does Alex need from you?": "Was braucht Alex diesmal von Ihnen?", "\"Give me the whole plan. I'll write it over the weekend.\"": "„Geben Sie mir den Plan. Ich schreibe ihn am Wochenende.“", "Problem solved.": "Problem gelöst.", "\"How else could you get Jonas's attention? Think about what he cares about.\"": "„Wie könnten Sie Jonas' Aufmerksamkeit anders gewinnen? Überlegen Sie, was ihm wichtig ist.“", "Push Alex to try again.": "Alex zu einem neuen Versuch auffordern.", "\"I'll call Jonas, manager to manager, and get the data released. The plan stays yours.\"": "„Ich rufe Jonas auf Führungsebene an und lasse die Daten freigeben. Der Plan bleibt Ihrer.“", "Do only the part only you can do.": "Nur den Teil übernehmen, den nur Sie erledigen können.", "\"Keep pushing. He'll answer eventually.\"": "„Bleiben Sie dran. Er wird schon antworten.“", "Stay out of it.": "Sich heraushalten.", "Your plan is ready on Monday. Alex presents it to Nordwerk, but reads it for the first time on the train that morning, and can't answer their follow-up questions.": "Ihr Plan ist am Montag fertig. Alex präsentiert ihn bei Nordwerk, liest ihn aber erst am Morgen im Zug zum ersten Mal und kann die Rückfragen nicht beantworten.", "\"It was never really my plan.\"": "„Es war nie wirklich mein Plan.“", "Tired. Another weekend gone, but Nordwerk is safe.": "Erschöpft. Wieder ein Wochenende weg, aber Nordwerk bleibt.", "Scene 4 of 4 · Four weeks later · you are on holiday": "Szene 4 von 4 · Vier Wochen später · Sie sind im Urlaub", "Brightline wants to change the delivery plan and needs an answer by Wednesday. You are on a beach. Your phone buzzes.": "Brightline möchte den Lieferplan ändern und braucht bis Mittwoch eine Antwort. Sie sind am Strand. Ihr Telefon vibriert.", "Sorry to disturb your holiday. Brightline needs an answer. What should I tell them? … They are asking again.": "Entschuldigen Sie die Störung im Urlaub. Brightline braucht eine Antwort. Was soll ich sagen? … Sie fragen schon wieder nach.", "Six messages in two hours": "Sechs Nachrichten in zwei Stunden", "How do you reply?": "Wie antworten Sie?", "Call Brightline yourself from the beach and decide.": "Brightline selbst vom Strand anrufen und entscheiden.", "Quickest answer for the client.": "Schnellste Antwort für den Kunden.", "\"10 minutes. Tell me your recommendation first, then I'll tell you what I'd check.\"": "„10 Minuten. Nennen Sie mir zuerst Ihre Empfehlung, dann sage ich Ihnen, was ich prüfen würde.“", "A short call, Alex decides.": "Kurzes Gespräch, Alex entscheidet.", "\"Your call. I trust your judgement.\"": "„Ihre Entscheidung. Ich vertraue Ihrem Urteil.“", "Hand over the decision fully.": "Die Entscheidung vollständig übergeben.", "Brightline gets an answer. Alex forwards you the next three questions too.": "Brightline erhält eine Antwort. Alex leitet Ihnen auch die nächsten drei Fragen weiter.", "\"As expected. No decision is made here without my manager.\"": "„Wie erwartet. Ohne meine Führungskraft wird hier nichts entschieden.“", "Needed. Also: this is your third work call this holiday.": "Gebraucht. Und: Es ist Ihr drittes Arbeitsgespräch in diesem Urlaub.", "See what happened to Alex →": "Was aus Alex geworden ist →", "Three months later": "Drei Monate später", "The comfortable room": "Der bequeme Raum", "I really like working for you. I just can't say what I've learned this year.": "Ich arbeite sehr gern für Sie. Ich kann nur nicht sagen, was ich in diesem Jahr gelernt habe.", "Alex, in your next one-to-one": "Alex, im nächsten Mitarbeitergespräch", "Three months later a team-lead role opens. Alex applies and is turned down: \"not yet ready to own client decisions\". Everything you did worked, and Alex did not grow.": "Drei Monate später wird eine Teamleitung frei. Alex bewirbt sich und erhält eine Absage: „noch nicht bereit, Kundenentscheidungen zu verantworten“. Alles, was Sie getan haben, hat funktioniert, aber Alex hat sich nicht entwickelt.", "I feel like I have been standing still in a very comfortable room. It was like living in a bubble.": "„I feel like I have been standing still in a very comfortable room. It was like living in a bubble.“ (Ich hatte das Gefühl, in einem sehr bequemen Raum stillzustehen. Es war wie ein Leben in einer Blase.)", "A departing team member, quoted in a leadership article": "Ein ausscheidendes Teammitglied, zitiert in einem Fachartikel zu Führung", "How Alex's ownership changed": "Wie sich Alex' Eigenverantwortung entwickelt hat", "Ownership: 0–41 waits for you · 42–61 asks first · 62–100 comes with a plan": "Eigenverantwortung: 0–41 wartet auf Sie · 42–61 fragt zuerst · 62–100 kommt mit einem Plan", "Your pattern": "Ihr Muster", "Replay from": "Erneut spielen ab", "Start again": "Neu beginnen", "Clear saved runs": "Gespeicherte Durchläufe löschen", "Alex decides on option B, with one check you suggested. Brightline agrees.": "Alex entscheidet sich für Option B, mit einer Prüfung, die Sie vorgeschlagen haben. Brightline stimmt zu.", "\"My manager expects a recommendation from me. I need to prepare one.\"": "„Meine Führungskraft erwartet eine Empfehlung von mir. Ich muss eine vorbereiten.“", "A short call. Then back to the beach.": "Ein kurzes Gespräch. Dann zurück an den Strand.", "Your previous try": "Ihr vorheriger Versuch", "Alex waits until Wednesday, then picks an option at random. Brightline is unhappy.": "Alex wartet bis Mittwoch und wählt dann willkürlich eine Option. Brightline ist unzufrieden.", "\"I am not confident in my own judgement. I have rarely had to use it.\"": "„Ich traue meinem eigenen Urteil nicht. Ich musste es selten einsetzen.“", "Uneasy. You switch the phone off.": "Unwohl. Sie schalten das Telefon aus.", "Alex goes to the logistics team in person and gets half the data.": "Alex geht persönlich zum Logistikteam und erhält die Hälfte der Daten.", "\"Fair. I only sent one email. I could walk over to his team.\"": "„Berechtigt. Ich habe nur eine E-Mail geschickt. Ich könnte persönlich zu seinem Team gehen.“", "Like a good coach. Is that what Alex needs right now?": "Wie ein guter Coach. Ist es das, was Alex jetzt braucht?", "Jonas sends the data within the hour. Alex writes the recovery plan and presents it on Monday.": "Jonas schickt die Daten innerhalb einer Stunde. Alex erstellt den Maßnahmenplan und präsentiert ihn am Montag.", "\"My manager removed the blocker and left the plan with me. That was exactly the support I needed.\"": "„Meine Führungskraft hat das Hindernis beseitigt und den Plan bei mir gelassen. Genau diese Unterstützung habe ich gebraucht.“", "A five-minute call. It didn't feel like 'helping', but it was the most useful thing you did all week.": "Ein fünfminütiges Telefonat. Es fühlte sich nicht wie „Helfen“ an, war aber das Wirksamste, was Sie diese Woche getan haben.", "The data arrives on Tuesday. The recovery plan is late and Nordwerk notices.": "Die Daten kommen am Dienstag. Der Maßnahmenplan ist verspätet, und Nordwerk bemerkt es.", "\"I am blocked, and my manager is not stepping in.\"": "„Ich komme nicht weiter, und meine Führungskraft greift nicht ein.“", "Busy with your own things. You assume it will sort itself out.": "Mit Eigenem beschäftigt. Sie gehen davon aus, dass es sich von selbst klärt.", "Alex calls Nordwerk. It is tense, but Alex offers the partial shipment and a date. Afterwards you debrief for ten minutes: what worked, what to say differently.": "Alex ruft Nordwerk an. Es ist angespannt, aber Alex bietet eine Teillieferung und einen Termin an. Danach besprechen Sie zehn Minuten nach: Was hat funktioniert, was sollte man anders sagen.", "\"They need to hear that someone owns this. That should be me.\"": "„Der Kunde muss hören, dass jemand Verantwortung übernimmt. Das sollte ich sein.“", "Uneasy while Alex is on the phone. You stay at your desk anyway.": "Unruhig, während Alex telefoniert. Sie bleiben trotzdem an Ihrem Platz.", "I've emailed Jonas three times and called twice. His team says only he can release the data. I've run out of options. Could you help with this one thing?": "Ich habe Jonas dreimal geschrieben und zweimal angerufen. Sein Team sagt, nur er kann die Daten freigeben. Mir fehlen die Optionen. Könnten Sie bei diesem einen Punkt helfen?", "Frustrated, but has done everything they can": "Frustriert, hat aber alles Mögliche versucht", "Alex tries once more and fails. The weekend gets closer, and the plan is still blocked.": "Alex versucht es noch einmal ohne Erfolg. Das Wochenende rückt näher, und der Plan ist weiter blockiert.", "\"I've already tried everything I can. This is a manager-to-manager problem.\"": "„Ich habe alles versucht. Das muss auf Führungsebene geklärt werden.“", "Brightline needs a decision by Wednesday. I'm leaning towards option B, but I'm not sure. Could we talk for 10 minutes?": "Brightline braucht bis Mittwoch eine Entscheidung. Ich tendiere zu Option B, bin mir aber nicht sicher. Können wir 10 Minuten sprechen?", "Two messages": "Zwei Nachrichten", "Getting there": "Auf dem Weg", "I can do more on my own now. I still check with you before most decisions, out of habit.": "Ich kann jetzt mehr selbst erledigen. Vor den meisten Entscheidungen frage ich Sie aber noch, aus Gewohnheit.", "Alex is more capable than in spring, but still waits for your go-ahead. Some of your help built ownership, and some took it away.": "Alex ist kompetenter als im Frühjahr, wartet aber noch auf Ihre Freigabe. Ein Teil Ihrer Hilfe hat Eigenverantwortung aufgebaut, ein Teil hat sie genommen.", "Genuine care would have offered a deep relationship, coupled with profound challenge.": "„Genuine care would have offered a deep relationship, coupled with profound challenge.“ (Echte Fürsorge hätte eine tiefe Beziehung geboten, verbunden mit echter Herausforderung.)", "From a leadership article": "Aus einem Fachartikel zu Führung", "Alex owns the work": "Alex übernimmt Verantwortung", "I used to wait for you. Now I come with a plan, and I know you'll tell me straight if it isn't good enough.": "Früher habe ich auf Sie gewartet. Jetzt komme ich mit einem Plan und weiß, dass Sie mir offen sagen, wenn er nicht gut genug ist.", "Three months later Alex leads the Brightline account. You are needed less, and that is the point.": "Drei Monate später verantwortet Alex den Kunden Brightline. Sie werden weniger gebraucht, und genau darum geht es.", "Alex handles the call. In the debrief Alex asks you for the one thing to improve. You give it honestly.": "Alex führt das Gespräch. In der Nachbesprechung fragt Alex nach dem wichtigsten Verbesserungspunkt. Sie nennen ihn offen.", "\"Knowing they're on the line makes it easier to speak up.\"": "„Zu wissen, dass meine Führungskraft zuhört, macht es leichter, das Gespräch zu führen.“", "You hold back twice. It works.": "Sie halten sich zweimal zurück. Es funktioniert.", "Alex sends a long, defensive email. Nordwerk escalates to your boss.": "Alex schickt eine lange, defensive E-Mail. Nordwerk eskaliert an Ihre Vorgesetzte.", "\"I have never handled a client escalation like this. I expected support.\"": "„Ich hatte noch nie eine solche Kundeneskalation. Ich habe Unterstützung erwartet.“", "You tell yourself it's good for Alex's growth.": "Sie sagen sich, es sei gut für Alex' Entwicklung.", "Alex left the team": "Alex hat das Team verlassen", "I asked for help when I needed it, and I mostly got 'figure it out'. I learned to stop asking.": "Ich habe um Hilfe gebeten, wenn ich sie brauchte, und meist nur „Finden Sie es selbst heraus“ gehört. Ich habe aufgehört zu fragen.", "Six months later Alex moves to another team. Refusing help did not build ownership. It left Alex stuck and alone.": "Sechs Monate später wechselt Alex in ein anderes Team. Verweigerte Hilfe hat keine Eigenverantwortung aufgebaut. Sie hat Alex allein und blockiert gelassen.", "Alex cuts the deck to seven slides around one message. Thursday is a little shaky in the Q&A, but it is Alex's pitch, and Alex knows it.": "Alex kürzt auf sieben Folien mit einer Kernaussage. Am Donnerstag ist die Fragerunde etwas unsicher, aber es ist Alex' Präsentation, und Alex weiß das.", "\"A difficult question. Their main issue is late deliveries. Everything else is secondary.\"": "„Eine schwierige Frage. Ihr Hauptproblem sind verspätete Lieferungen. Alles andere ist zweitrangig.“", "Impatient. You could fix this in twenty minutes yourself.": "Ungeduldig. Sie könnten das in zwanzig Minuten selbst lösen.", "Nordwerk is upset. I drafted a reply: a partial shipment on Friday and a call tomorrow. Can you look before I send it?": "Nordwerk ist verärgert. Ich habe eine Antwort entworfen: Teillieferung am Freitag und ein Gespräch morgen. Können Sie vor dem Versand kurz drüberschauen?", "Nervous, but prepared": "Nervös, aber vorbereitet", "\"I had a plan. There was no point in preparing it.\"": "„Ich hatte einen Plan. Die Vorbereitung war umsonst.“", "FYI: Brightline wants to change the plan. I checked capacity with Jonas, and I'm proposing option B. Let me know only if you see a problem. Enjoy your holiday.": "Zur Info: Brightline möchte den Plan ändern. Ich habe die Kapazität mit Jonas geprüft und schlage Option B vor. Melden Sie sich nur, wenn Sie ein Problem sehen. Schönen Urlaub.", "One message. Calm.": "Eine Nachricht. Ruhig.", "Alex decides by Monday. Brightline is happy.": "Alex entscheidet bis Montag. Brightline ist zufrieden.", "\"My manager means it. I am ready to decide.\"": "„Meine Führungskraft meint es ernst. Ich bin bereit zu entscheiden.“", "Confident in Alex. You stay on holiday.": "Zuversichtlich. Sie bleiben im Urlaub.", "Alex sends the reply and calls. Nordwerk accepts the partial shipment.": "Alex sendet die Antwort und ruft an. Nordwerk akzeptiert die Teillieferung.", "\"I have a plan. I can handle this.\"": "„Ich habe einen Plan. Das schaffe ich.“", "Alex rebuilds the rest. The deck is solid. Alex still checks two slides with you on Wednesday night.": "Alex überarbeitet den Rest. Die Präsentation ist solide. Am Mittwochabend stimmt Alex noch zwei Folien mit Ihnen ab.", "\"Now I can see the standard for an opening slide. I can apply it to the rest.\"": "„Jetzt sehe ich den Standard für eine Einstiegsfolie. Den kann ich auf den Rest übertragen.“", "Good. You helped without taking the pen away for long.": "Gut. Sie haben geholfen, ohne lange selbst die Arbeit zu übernehmen.", "Nordwerk is upset. I'm not sure what to offer them. What would you do?": "Nordwerk ist verärgert. Ich weiß nicht, was ich anbieten soll. Was würden Sie tun?", "Worried, but thinking about it": "Besorgt, denkt aber darüber nach", "Alex stays late twice. The deck gets longer, not clearer. The client looks confused on Thursday, and Alex avoids you on Friday.": "Alex bleibt zweimal länger. Die Präsentation wird länger, nicht klarer. Der Kunde wirkt am Donnerstag irritiert, und Alex meidet Sie am Freitag.", "\"I asked for help and did not get it. I still do not know what is wrong with the deck.\"": "„Ich habe um Hilfe gebeten und keine bekommen. Ich weiß immer noch nicht, was an der Präsentation falsch ist.“", "Principled. Also a little relieved: one thing less on your plate.": "Konsequent. Und etwas erleichtert: eine Aufgabe weniger.", "(You only find out because you were in CC. Alex hasn't come to you.) …Yes, I saw it. I didn't want to bother you again.": "(Sie erfahren es nur, weil Sie in CC sind. Alex ist nicht zu Ihnen gekommen.) …Ja, ich habe es gesehen. Ich wollte Sie nicht schon wieder stören.", "Withdrawn": "Zurückgezogen", "Monday, 9:10": "Montag, 9:10", "Wednesday, 16:40": "Mittwoch, 16:40", "Friday, 11:00": "Freitag, 11:00", "Four weeks later · you are on holiday": "Vier Wochen später · Sie sind im Urlaub", "Waits for you to act": "Wartet, bis Sie handeln", "Asks you before deciding": "Fragt vor Entscheidungen nach", "Comes with a plan": "Kommt mit einem Plan", "Client presentation": "Kundenpräsentation", "Angry customer": "Verärgerter Kunde", "Blocked data": "Blockierte Daten", "Decision without you": "Entscheidung ohne Sie", "Scene": "Szene"};
+const EN = Object.fromEntries(Object.entries(DE).map(([k,v]) => [v,k]));
+let LANG = "en";
+try { LANG = localStorage.getItem("hwto.lang") || "en"; } catch(e){}
+
+function tr(s, de){
+  const M = de ? DE : EN; if (M[s] !== undefined) return M[s];
+  let m;
+  if (de){
+    if (m = s.match(/^Alex now: (.*)$/)) return "Alex jetzt: " + (DE[m[1]] || m[1]);
+    if (m = s.match(/^Scene (\d) of (\d) · (.*)$/)) return `Szene ${m[1]} von ${m[2]} · ${DE[m[3]] || m[3]}`;
+    if (m = s.match(/^Ownership ([+-]?\d+)$/)) return "Eigenverantwortung " + m[1];
+    if (m = s.match(/^Trust ([+-]?\d+)$/)) return "Vertrauen " + m[1];
+    if (m = s.match(/^Scene (\d)$/)) return "Szene " + m[1];
+    if ((m = s.match(/^(\d)\. (.*)$/)) && DE[m[2]]) return m[1] + ". " + DE[m[2]];
+  } else {
+    if (m = s.match(/^Alex jetzt: (.*)$/)) return "Alex now: " + (EN[m[1]] || m[1]);
+    if (m = s.match(/^Szene (\d) von (\d) · (.*)$/)) return `Scene ${m[1]} of ${m[2]} · ${EN[m[3]] || m[3]}`;
+    if (m = s.match(/^Eigenverantwortung ([+-]?\d+)$/)) return "Ownership " + m[1];
+    if (m = s.match(/^Vertrauen ([+-]?\d+)$/)) return "Trust " + m[1];
+    if (m = s.match(/^Szene (\d)$/)) return "Scene " + m[1];
+    if ((m = s.match(/^(\d)\. (.*)$/)) && EN[m[2]]) return m[1] + ". " + EN[m[2]];
+  }
+  return s;
+}
+function translateTree(root){
+  if (!root) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n =>
+    n.parentNode && /^(SCRIPT|STYLE|OPTION)$/.test(n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  let n; const de = LANG === "de";
+  while (n = w.nextNode()){
+    const v = n.nodeValue, s = v.trim(); if (!s) continue;
+    const out = tr(s, de); if (out !== s) n.nodeValue = v.replace(s, out);
+  }
+}
+new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => translateTree(n.nodeType === 3 ? n.parentNode : n))))
+  .observe(document.body, { childList:true, subtree:true });
+$("lang").value = LANG;
+$("lang").onchange = e => {
+  LANG = e.target.value; try { localStorage.setItem("hwto.lang", LANG); } catch(err){}
+  document.documentElement.lang = LANG; document.documentElement.dataset.theme = "light"; document.title = tr("Team Ownership Simulator", LANG === "de");
+  translateTree(document.body);
+};
+document.documentElement.lang = LANG; document.documentElement.dataset.theme = "light"; document.title = tr("Team Ownership Simulator", LANG === "de");
+translateTree(document.body);
+
+// On load: show the home page (offers "Continue" if a run is in progress).
+intro();
+</script>
+</body>
+</html>
