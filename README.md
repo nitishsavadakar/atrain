@@ -2,8 +2,12 @@
 
 A short browser experience (about 4 minutes) for managers. You decide, in four connected scenes, how to help a team member called Alex. Then you see what your help does to Alex's ownership and trust over time.
 
-## Run it
-Open `app/index.html` in any modern browser. No install, no server, no internet.
+## Try it online
+**App:** https://nitishsavadakar.github.io/team-ownership-simulator/  
+**How it was built:** https://nitishsavadakar.github.io/team-ownership-simulator/app/process.html
+
+## Run it locally
+Download the repo (Code → Download ZIP) and open `app/index.html` in any modern browser. No install, no server, no internet.
 
 ## What it does
 - **Four connected scenes:** a client presentation, an angry customer, blocked data from another team, and a decision while you are on holiday. Alex's words and behaviour in later scenes depend on your earlier choices.
